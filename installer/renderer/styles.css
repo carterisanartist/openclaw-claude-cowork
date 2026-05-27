@@ -366,6 +366,52 @@ a:hover { text-decoration: underline; }
   left: 6px;
   top: 0;
 }
+.role-recommended {
+  border-color: rgba(110, 139, 255, 0.55);
+  background: linear-gradient(180deg, rgba(110,139,255,0.08), transparent 70%);
+  box-shadow: 0 0 0 1px rgba(110, 139, 255, 0.25);
+}
+.role-recommended .role-badge {
+  background: rgba(110, 139, 255, 0.22);
+  color: #cdd9ff;
+}
+.role-warn {
+  margin-top: 10px !important;
+  font-size: 12.5px !important;
+  color: var(--warn) !important;
+  background: rgba(245, 184, 109, 0.08);
+  border: 1px solid rgba(245, 184, 109, 0.35);
+  border-radius: 6px;
+  padding: 8px 10px;
+  line-height: 1.45;
+}
+
+/* Callouts */
+.callout {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.callout > strong {
+  display: block;
+  font-size: 13.5px;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+.callout p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+.callout p:first-of-type { margin-top: 4px; }
+.callout-warn {
+  border-color: rgba(245, 184, 109, 0.4);
+  background: rgba(245, 184, 109, 0.08);
+}
+.callout-warn > strong { color: var(--warn); }
 
 /* Provider chooser */
 .providers {

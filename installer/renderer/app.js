@@ -526,7 +526,10 @@ tokenVerify.addEventListener("click", async () => {
   } else {
     state.botInfo = null;
     tokenResult.className = "result err";
-    tokenResult.innerHTML = `<h4>Couldn't verify token</h4><div>${escapeHtml(res.error ?? "Unknown error")}</div>`;
+    const adminHint = state.role === "claude-user"
+      ? `<div class="mono" style="margin-top:8px">If you're on the Claude side, the token has to come from whoever set up the Claw host. Ping your admin and ask them to confirm the bot is created and gateway is running, then paste the token they give you.</div>`
+      : "";
+    tokenResult.innerHTML = `<h4>Couldn't verify token</h4><div>${escapeHtml(res.error ?? "Unknown error")}</div>${adminHint}`;
   }
   render();
 });

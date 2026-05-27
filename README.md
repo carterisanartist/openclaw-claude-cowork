@@ -55,12 +55,29 @@ it asks you which role this machine plays:
 | **Claude side**                 | Each employee's laptop / workstation              | Verifies the shared bot token, auto-discovers the user's chat with the bot, installs the bridge into Claude Desktop's config, runs a smoke test.       |
 | **Both on this machine**        | Dev / demo box running everything locally        | Runs the Claw-host setup, then the Claude-side setup, without re-asking for the token.                                                                 |
 
-So the rollout is:
-
-1. **Admin** creates the shared company bot in Telegram, runs the installer on the OpenClaw
-   host in **Claw host** mode, and hands the bot token + bot username to every employee.
-2. **Employee** runs the same installer on their own laptop in **Claude side** mode and pastes
-   the token. The wizard does the rest.
+> ### Do the Claw host first
+>
+> The Claude-side install asks for two things the admin only produces during the Claw-host
+> install: the **shared bot token** (from BotFather, plugged in during Step 2) and the
+> **bot's @username** (printed at the end of Step 2). It also enforces the DM policy that
+> was set on the Claw host — if `dmPolicy: "pairing"` is in effect, the employee can't
+> reach Claw until the admin approves their pairing code.
+>
+> So the order is non-negotiable:
+>
+> 1. **Admin** creates the shared bot in Telegram, runs the installer on the OpenClaw
+>    host in **Claw host** mode, and at the Done screen copies down: bot token, bot
+>    @username, and which `dmPolicy` they picked.
+> 2. **Admin** distributes those three things to every employee through whatever
+>    channel you already trust for secrets (1Password, Bitwarden, a pinned message in
+>    an internal channel — anything but plain email).
+> 3. **Employee** runs the same installer on their own laptop in **Claude side** mode,
+>    pastes the token, lets the wizard auto-discover their chat ID, and — if you went
+>    with `pairing` — pings the admin for approval after their first DM to the bot.
+>
+> Running the wizards in the other order doesn't *break* anything (Claude side will
+> just sit at "Smoke test failed: getMe rejected the token" until the admin produces
+> one), but it wastes both people's time.
 
 ### Step 1 — Admin: create the shared bot
 
@@ -110,9 +127,20 @@ So the rollout is:
       If you picked `dmPolicy: "pairing"`, a **Pairing approval** panel appears: it polls
       `openclaw pairing list telegram` and lets you approve incoming codes inline with a
       single click (equivalent to `openclaw pairing approve telegram <code>`).
-   6. **Done** — share the bot token and bot username with the employees.
+   6. **Done** — copy down three things and send them to every employee through your usual
+      secrets channel:
+      - the **bot token** (sensitive — treat it like a password),
+      - the **bot @username** so employees know who to DM to start a chat,
+      - the **DM policy** you picked (`pairing` / `allowlist` / `open` / `disabled`) so
+        employees know what to expect on first contact, and so anyone on `pairing` knows
+        to ping you for approval after their first DM.
 
 ### Step 3 — Employee: run the installer on each laptop (Claude side mode)
+
+**Before you start, get these three things from your admin** (they're produced by Step 2
+above): the **bot token**, the **bot @username**, and the **DM policy** the admin picked.
+If the policy is `pairing`, you'll also need to flag the admin after your first DM so
+they can approve your pairing code on the Claw host.
 
 1. Download the same installer.
 2. Launch it and pick **"This machine runs Claude Desktop"**.

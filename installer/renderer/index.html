@@ -57,6 +57,27 @@
           </div>
 
           <p class="note">There are two machines to configure. They might be the same computer (rare) or different ones (typical). Pick the role of <em>this</em> machine on the next screen.</p>
+
+          <div class="callout callout-warn">
+            <strong>Do the Claw host first.</strong>
+            <p>
+              The Claude-side install needs two things only the Claw-host install produces: the
+              <strong>shared bot token</strong> and the <strong>bot's @username</strong>. It also
+              has to play by whatever <strong>DM policy</strong> the admin picked.
+            </p>
+            <p>
+              If you're an admin: run this installer on the OpenClaw box first in
+              <em>Claw host</em> mode, then distribute the token, @username, and DM policy to
+              every employee through your usual secrets channel (1Password, Bitwarden, an
+              internal pinned message — anything but plain email).
+            </p>
+            <p>
+              If you're an employee and you don't have those three things yet: stop, ping your
+              admin, come back when you do. Running ahead just leaves you stuck at "token
+              rejected" later in the wizard.
+            </p>
+          </div>
+
           <div class="row">
             <button class="btn btn-primary" id="welcome-go">Get started →</button>
           </div>
@@ -66,9 +87,10 @@
         <section class="step" data-step="role" hidden>
           <h1>What does this machine do?</h1>
           <p class="lead">Pick the role for the computer you're on right now. Each role runs a different short setup.</p>
+          <p class="note"><strong>Recommended order:</strong> Claw host first, then Claude side on each laptop. The Claude-side install needs the bot token and bot @username that come out of the Claw-host install.</p>
           <div class="roles">
-            <button class="role" data-role="claw-host">
-              <div class="role-badge">Claw host</div>
+            <button class="role role-recommended" data-role="claw-host">
+              <div class="role-badge">Claw host — start here</div>
               <h3>This machine runs OpenClaw</h3>
               <p>It's the Mac mini / Windows box / server that hosts the company Claw Gateway.</p>
               <ul>
@@ -76,18 +98,20 @@
                 <li>Adds the allowlist of who can DM the bot</li>
                 <li>Restarts the gateway daemon</li>
                 <li>Runs <code>openclaw doctor</code> to confirm health</li>
+                <li><strong>Outputs:</strong> the bot token and @username to give to employees</li>
               </ul>
             </button>
             <button class="role" data-role="claude-user">
-              <div class="role-badge">Claude side</div>
+              <div class="role-badge">Claude side — after the host</div>
               <h3>This machine runs Claude Desktop</h3>
               <p>It's a laptop or workstation where someone uses Claude Desktop and wants Claw as a coworker.</p>
               <ul>
-                <li>Validates the shared bot token</li>
+                <li>Validates the shared bot token (admin gives it to you)</li>
                 <li>Auto-discovers your private chat ID with the bot</li>
                 <li>Installs the bridge into Claude Desktop</li>
-                <li>Runs an end-to-end smoke test</li>
+                <li>Runs an end-to-end smoke test against the live Claw host</li>
               </ul>
+              <p class="role-warn"><strong>Before you click this:</strong> get the bot token, the bot @username, and the DM policy from your admin. Without them, the wizard will get stuck at "Verify token".</p>
             </button>
             <button class="role" data-role="both">
               <div class="role-badge">Both</div>
