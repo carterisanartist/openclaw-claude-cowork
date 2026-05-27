@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build artifacts (bridge)
+dist/
+build/
+*.mcpb
+build-tests/
+
+# Build artifacts (installer)
+installer/dist/
+installer/out/
+installer/build-resources/*.png.bak
+
+# Editor / OS junk
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# Secrets (in case anyone ever runs locally with real env files)
+.env
+.env.local
+.env.*.local
+
+# Test scratch
+/tmp/

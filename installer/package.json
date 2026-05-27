@@ -1,0 +1,75 @@
+{
+  "name": "company-claw-bridge-setup",
+  "version": "0.1.0",
+  "description": "Guided installer that wires the Company Claw Bridge extension into Claude Desktop and binds it to the company's OpenClaw assistant.",
+  "private": true,
+  "main": "dist/main/main.js",
+  "author": "OpenClaw <-> Claude Cowork",
+  "license": "MIT",
+  "scripts": {
+    "build:main": "tsc -p tsconfig.main.json",
+    "build": "npm run build:main",
+    "start": "npm run build && electron dist/main/main.js",
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:win": "npm run build && electron-builder --win",
+    "test": "npm run build:main && node --test --test-reporter=spec tests/openclawConfig.test.cjs tests/parsePairingPlain.test.cjs tests/existingBridge.test.cjs",
+    "clean": "rm -rf dist out"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "^42.3.0",
+    "electron-builder": "^26.0.0",
+    "typescript": "^5.6.0"
+  },
+  "build": {
+    "appId": "ai.openclaw.claude-cowork-setup",
+    "productName": "Company Claw Bridge Setup",
+    "directories": {
+      "buildResources": "build-resources",
+      "output": "out"
+    },
+    "files": [
+      "dist/**/*",
+      "renderer/**/*",
+      "!renderer/**/*.ts",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../company-claw-bridge.mcpb",
+        "to": "company-claw-bridge.mcpb"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "build-resources/icon.png"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "build-resources/icon.png"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] }
+      ],
+      "category": "Development",
+      "icon": "build-resources/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "dmg": {
+      "title": "Company Claw Bridge Setup ${version}",
+      "window": { "width": 540, "height": 380 }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "company-claw-bridge",
+  "version": "0.1.0",
+  "description": "Claude Desktop MCPB extension that lets Claude dispatch and supervise the company's central OpenClaw assistant over Telegram.",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "company-claw-bridge": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist build company-claw-bridge.mcpb",
+    "pack": "bash scripts/build.sh",
+    "validate": "mcpb validate company-claw-bridge.mcpb",
+    "start": "node dist/index.js",
+    "test": "tsc && node --test --test-reporter=spec tests/state.test.mjs tests/dispatcher.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "^2.1.2",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

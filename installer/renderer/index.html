@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;" />
+    <title>Company Claw Bridge Setup</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">CB</div>
+          <div>
+            <div class="brand-title">Company Claw Bridge</div>
+            <div class="brand-sub" id="brand-sub">Setup</div>
+          </div>
+        </div>
+        <ol class="steps" id="steps-list"></ol>
+        <div class="sidebar-foot">
+          <p id="sidebar-foot-text">This wizard ties Claude Desktop to your company's OpenClaw assistant over Telegram.</p>
+          <button class="btn btn-ghost" id="restart-wizard" hidden>Start over</button>
+        </div>
+      </aside>
+      <main class="content">
+
+        <!-- ============== WELCOME ============== -->
+        <section class="step" data-step="welcome">
+          <h1>Wire Claude and OpenClaw together</h1>
+          <p class="lead">
+            This installer connects the company's central <strong>OpenClaw</strong> assistant
+            to <strong>Claude Desktop</strong>. Once both sides are configured, Claude can dispatch work
+            to Claw and Claw can ask Claude for help when it's stuck.
+          </p>
+
+          <div class="diagram">
+            <div class="dnode">
+              <div class="dlabel">You</div>
+              <div class="dsub">Claude Desktop</div>
+            </div>
+            <div class="darrow">
+              <div class="dline"></div>
+              <div class="dlabel-sm">tool calls</div>
+            </div>
+            <div class="dnode dnode-primary">
+              <div class="dlabel">Bridge</div>
+              <div class="dsub">MCP plugin</div>
+            </div>
+            <div class="darrow">
+              <div class="dline"></div>
+              <div class="dlabel-sm">Telegram</div>
+            </div>
+            <div class="dnode">
+              <div class="dlabel">OpenClaw</div>
+              <div class="dsub">Company assistant</div>
+            </div>
+          </div>
+
+          <p class="note">There are two machines to configure. They might be the same computer (rare) or different ones (typical). Pick the role of <em>this</em> machine on the next screen.</p>
+          <div class="row">
+            <button class="btn btn-primary" id="welcome-go">Get started →</button>
+          </div>
+        </section>
+
+        <!-- ============== ROLE CHOOSER ============== -->
+        <section class="step" data-step="role" hidden>
+          <h1>What does this machine do?</h1>
+          <p class="lead">Pick the role for the computer you're on right now. Each role runs a different short setup.</p>
+          <div class="roles">
+            <button class="role" data-role="claw-host">
+              <div class="role-badge">Claw host</div>
+              <h3>This machine runs OpenClaw</h3>
+              <p>It's the Mac mini / Windows box / server that hosts the company Claw Gateway.</p>
+              <ul>
+                <li>Binds the Telegram bot to OpenClaw's <code>channels.telegram</code></li>
+                <li>Adds the allowlist of who can DM the bot</li>
+                <li>Restarts the gateway daemon</li>
+                <li>Runs <code>openclaw doctor</code> to confirm health</li>
+              </ul>
+            </button>
+            <button class="role" data-role="claude-user">
+              <div class="role-badge">Claude side</div>
+              <h3>This machine runs Claude Desktop</h3>
+              <p>It's a laptop or workstation where someone uses Claude Desktop and wants Claw as a coworker.</p>
+              <ul>
+                <li>Validates the shared bot token</li>
+                <li>Auto-discovers your private chat ID with the bot</li>
+                <li>Installs the bridge into Claude Desktop</li>
+                <li>Runs an end-to-end smoke test</li>
+              </ul>
+            </button>
+            <button class="role" data-role="both">
+              <div class="role-badge">Both</div>
+              <h3>Both on this machine</h3>
+              <p>You're testing or running everything on one box. Runs the Claw-host setup first, then the Claude-side setup, without re-asking for the token.</p>
+              <ul>
+                <li>Everything in both lists above, in order</li>
+                <li>Only useful for dev / demo / single-user shops</li>
+              </ul>
+            </button>
+          </div>
+        </section>
+
+        <!-- ============== PREREQS ============== -->
+        <section class="step" data-step="prereqs" hidden>
+          <h1 id="prereqs-title">Prerequisites</h1>
+          <p class="lead" id="prereqs-lead">We need a few things in place before we wire anything up.</p>
+          <div class="checks" id="prereqs-checks"></div>
+          <p class="note">If something's missing, click the link, install it, then press <strong>Re-check</strong>.</p>
+          <div class="row">
+            <button class="btn btn-secondary" id="prereqs-recheck">Re-check</button>
+          </div>
+        </section>
+
+        <!-- ============== TOKEN ============== -->
+        <section class="step" data-step="token" hidden>
+          <h1>Paste the shared bot token</h1>
+          <p class="lead">
+            Your admin created a single company bot in Telegram (via <a href="#" class="external" data-url="https://t.me/BotFather">@BotFather</a>) and gave you its token.
+            Every employee uses the same token; each employee gets their own private chat with the bot.
+          </p>
+          <label class="field">
+            <span class="field-label">Bot token</span>
+            <input type="password" id="token-input" placeholder="123456789:AAH…" autocomplete="off" />
+          </label>
+          <div class="row">
+            <button class="btn btn-primary" id="token-verify">Verify token</button>
+            <button class="btn btn-ghost" id="token-toggle">Show</button>
+          </div>
+          <div class="result" id="token-result" hidden></div>
+          <details class="explain">
+            <summary>Why we need this</summary>
+            <p>Everything in this system flows through one Telegram bot. On the Claw host we bind it to <code>channels.telegram</code>. On the Claude side, the bridge talks to <code>api.telegram.org</code> as the same bot.</p>
+            <p>The token is stored only in local config files (OpenClaw's on the host, Claude Desktop's on the user side) — never transmitted anywhere except <code>api.telegram.org</code>.</p>
+          </details>
+        </section>
+
+        <!-- ============== INITIALIZE CLAW (claw-host / both) ============== -->
+        <section class="step" data-step="init-claw" hidden>
+          <h1>Choose a model for OpenClaw</h1>
+          <p class="lead">
+            Claw needs an LLM to think with. Pick a provider, pick a model, paste your API key.
+            We hand the choice to <code>openclaw onboard --non-interactive</code> so it writes
+            the right keys in <code id="initclaw-config-path">~/.openclaw/openclaw.json</code>
+            (and its <code>models.json</code> registry) using OpenClaw's own contracts —
+            no shape drift, no broken upgrades.
+          </p>
+
+          <div class="banner sticky" id="initclaw-existing" hidden></div>
+
+          <div class="providers" id="provider-cards">
+            <button class="provider" data-provider="anthropic-api-key">
+              <div class="provider-mark">A</div>
+              <div class="provider-name">Anthropic</div>
+              <div class="provider-sub">Claude Sonnet / Opus / Haiku (API key)</div>
+            </button>
+            <button class="provider" data-provider="openai-api-key">
+              <div class="provider-mark">O</div>
+              <div class="provider-name">OpenAI</div>
+              <div class="provider-sub">GPT-5 family (API key)</div>
+            </button>
+            <button class="provider" data-provider="openai-codex-oauth">
+              <div class="provider-mark">C</div>
+              <div class="provider-name">OpenAI Codex</div>
+              <div class="provider-sub">ChatGPT subscription (OAuth)</div>
+            </button>
+            <button class="provider" data-provider="google-api-key">
+              <div class="provider-mark">G</div>
+              <div class="provider-name">Google</div>
+              <div class="provider-sub">Gemini 2.x (AI Studio key)</div>
+            </button>
+            <button class="provider" data-provider="zai-api-key">
+              <div class="provider-mark">Z</div>
+              <div class="provider-name">Z.AI / GLM</div>
+              <div class="provider-sub">GLM-4.6, Coding Plan</div>
+            </button>
+            <button class="provider" data-provider="moonshot">
+              <div class="provider-mark">M</div>
+              <div class="provider-name">Moonshot</div>
+              <div class="provider-sub">Kimi K2 (API key)</div>
+            </button>
+            <button class="provider" data-provider="ollama">
+              <div class="provider-mark">L</div>
+              <div class="provider-name">Ollama</div>
+              <div class="provider-sub">Local models (no key)</div>
+            </button>
+            <button class="provider" data-provider="custom-api-key">
+              <div class="provider-mark">+</div>
+              <div class="provider-name">Custom</div>
+              <div class="provider-sub">OpenAI / Anthropic-compatible endpoint</div>
+            </button>
+          </div>
+
+          <div class="provider-form" id="provider-form" hidden>
+            <label class="field" id="initclaw-baseurl-wrap" hidden>
+              <span class="field-label" id="initclaw-baseurl-label">Base URL</span>
+              <input type="text" id="initclaw-baseurl" placeholder="http://127.0.0.1:11434" />
+            </label>
+
+            <label class="field" id="initclaw-key-wrap">
+              <span class="field-label" id="initclaw-key-label">API key</span>
+              <div class="input-row">
+                <input type="password" id="initclaw-key" placeholder="sk-…" autocomplete="off" />
+                <button class="btn btn-ghost" id="initclaw-key-toggle" type="button">Show</button>
+              </div>
+            </label>
+
+            <label class="field" id="initclaw-compat-wrap" hidden>
+              <span class="field-label">Compatibility</span>
+              <select id="initclaw-compat">
+                <option value="openai">OpenAI-compatible (default)</option>
+                <option value="anthropic">Anthropic-compatible</option>
+              </select>
+              <span class="field-help">Which wire protocol your custom endpoint speaks.</span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Model</span>
+              <div class="input-row">
+                <select id="initclaw-model-select"></select>
+                <input type="text" id="initclaw-model-custom" placeholder="provider/model" />
+              </div>
+              <span class="field-help" id="initclaw-model-help"></span>
+              <div class="result" id="initclaw-model-validate" hidden></div>
+            </label>
+
+            <div class="row">
+              <button class="btn btn-secondary" id="initclaw-test">Test connection</button>
+              <button class="btn btn-primary" id="initclaw-apply">Run openclaw onboard</button>
+            </div>
+            <div class="result" id="initclaw-test-result" hidden></div>
+            <div class="result" id="initclaw-apply-result" hidden></div>
+          </div>
+
+          <details class="explain">
+            <summary>What this actually does</summary>
+            <p>We run <code>openclaw onboard --non-interactive --auth-choice &lt;provider&gt; --skip-bootstrap --skip-health</code>
+              and inject your key via the documented env var (e.g. <code>ANTHROPIC_API_KEY</code>).
+              OpenClaw writes its own provider config under <code>models.providers.&lt;id&gt;</code>
+              and sets <code>agents.defaults.model.primary</code> to your choice.</p>
+            <p>We then run <code>openclaw models set &lt;provider/model&gt;</code> to pin the default
+              model and <code>openclaw status --deep</code> to confirm the gateway is healthy.</p>
+          </details>
+        </section>
+
+        <!-- ============== BIND OPENCLAW (claw-host / both) ============== -->
+        <section class="step" data-step="bind-openclaw" hidden>
+          <h1>Bind OpenClaw to the bot</h1>
+          <p class="lead">
+            We'll add a <code>channels.telegram</code> block to your OpenClaw config so it logs into the company bot.
+            OpenClaw requires <strong>numeric Telegram user IDs</strong> in its allowlist — usernames are silently ignored.
+          </p>
+          <div class="cards">
+            <div class="card">
+              <h3>Config file</h3>
+              <p class="mono" id="bind-config-path">~/.openclaw/openclaw.json</p>
+            </div>
+            <div class="card">
+              <h3>What we write</h3>
+              <p><code>channels.telegram.enabled: true</code>, <code>botToken</code>, <code>allowFrom</code> (numeric IDs), and <code>dmPolicy</code>.</p>
+            </div>
+            <div class="card">
+              <h3>Reversible</h3>
+              <p>We back up the existing config before writing. Other Gateway settings are left untouched.</p>
+            </div>
+          </div>
+          <div class="banner sticky" id="bind-existing" hidden></div>
+
+          <label class="field">
+            <span class="field-label">DM policy</span>
+            <select id="bind-dm-policy">
+              <option value="pairing">pairing — first DM gets a code you approve here (safest, recommended)</option>
+              <option value="allowlist">allowlist — only the numeric IDs below can DM, no approval needed</option>
+              <option value="open">open — anyone who finds the bot can DM (requires <code>*</code> below)</option>
+              <option value="disabled">disabled — DMs are dropped</option>
+            </select>
+            <span class="field-help" id="bind-dm-policy-help">
+              We default to <code>pairing</code> because it's the safest: even if the bot URL leaks, nobody can talk to it until you approve their pairing code on the next screen.
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Allowed Telegram user IDs (comma-separated numbers, or <code>*</code> for "open" policy).</span>
+            <input type="text" id="bind-allow" placeholder="123456789, 987654321" inputmode="numeric" />
+            <span class="field-help">
+              Find your numeric ID by DMing the bot then running <code>openclaw logs --follow</code> and reading <code>from.id</code>,
+              or by hitting <code>https://api.telegram.org/bot&lt;token&gt;/getUpdates</code> in a browser.
+              Telegram usernames (<code>@alice</code>) and negative group IDs are <strong>not</strong> accepted by OpenClaw and will be rejected.
+            </span>
+          </label>
+          <div class="row">
+            <button class="btn btn-primary" id="bind-apply">Write config</button>
+            <button class="btn btn-ghost" id="bind-doctor-fix">Run <code>openclaw doctor --fix</code></button>
+          </div>
+          <div class="result" id="bind-result" hidden></div>
+          <pre class="terminal" id="bind-doctor-output" hidden></pre>
+        </section>
+
+        <!-- ============== ACTIVATE GATEWAY (claw-host / both) ============== -->
+        <section class="step" data-step="restart-gateway" hidden>
+          <h1>Activate the Gateway</h1>
+          <p class="lead">
+            For the new Telegram binding to take effect we need the OpenClaw Gateway daemon running.
+            We can install it as a managed service so it survives logout and reboot, or just restart what's already running.
+          </p>
+
+          <div class="cards">
+            <div class="card">
+              <h3>Install as daemon</h3>
+              <p>Sets up a LaunchAgent (macOS), systemd user unit (Linux), or Windows Scheduled Task. Recommended for a permanent Claw host.</p>
+              <div class="row">
+                <button class="btn btn-primary" id="daemon-install">Install daemon</button>
+                <button class="btn btn-ghost" id="daemon-uninstall">Uninstall</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Restart only</h3>
+              <p>Use this if you already manage the gateway yourself (foreground, supervised by something else, etc.).</p>
+              <div class="row">
+                <button class="btn btn-secondary" id="restart-go">Restart gateway</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Diagnose</h3>
+              <p>Verify everything is wired correctly and (optionally) auto-fix common config issues.</p>
+              <div class="row">
+                <button class="btn btn-ghost" id="restart-doctor">Run <code>openclaw doctor</code></button>
+                <button class="btn btn-ghost" id="restart-status">Run <code>openclaw status --deep</code></button>
+              </div>
+            </div>
+          </div>
+          <div class="result" id="restart-result" hidden></div>
+          <pre class="terminal" id="restart-doctor-output" hidden></pre>
+
+          <!-- Pairing flow: appears when dmPolicy === "pairing" -->
+          <section id="pairing-block" hidden>
+            <h2 style="margin-top:32px">Approve a Telegram pairing</h2>
+            <p class="lead">
+              On <code>dmPolicy: "pairing"</code>, the first time someone DMs the bot OpenClaw issues them a 3–8 character pairing code.
+              Approve it here (or anyone in <code>commands.ownerAllowFrom</code> can run <code>openclaw pairing approve telegram &lt;code&gt;</code>) and they're in.
+            </p>
+            <div class="row">
+              <button class="btn btn-secondary" id="pairing-refresh">Check for pending codes</button>
+              <label class="check-inline">
+                <input type="checkbox" id="pairing-autopoll" checked />
+                <span>Auto-poll every 5s while this panel is open</span>
+              </label>
+              <span class="pairing-autopoll-status" id="pairing-autopoll-status"></span>
+            </div>
+            <div class="result" id="pairing-list" hidden></div>
+
+            <details class="explain">
+              <summary>How pairing works</summary>
+              <p>OpenClaw caches the pairing in the bot's state directory. Approving a code grants DM access to that sender for the lifetime of the pairing store. To remove access later run <code>openclaw pairing revoke telegram &lt;sender_id&gt;</code> or wipe the relevant entry from <code>~/.openclaw/agents/&lt;agentId&gt;/pairings/telegram.json</code>.</p>
+              <p>Codes expire one hour after issuance — if a pending code goes stale, have the sender DM the bot again.</p>
+            </details>
+          </section>
+
+          <details class="explain">
+            <summary>Manual fallback</summary>
+            <p>If anything fails in this installer, drop into a terminal:</p>
+            <pre class="terminal">openclaw gateway install         # set up the daemon
+openclaw gateway restart         # bounce the running gateway
+openclaw status --deep           # live health + channel probes
+openclaw doctor --fix            # try to repair common issues
+openclaw pairing list telegram   # see who's waiting for approval
+openclaw pairing approve telegram &lt;code&gt;</pre>
+          </details>
+        </section>
+
+        <!-- ============== CHAT DISCOVERY (claude-user / both) ============== -->
+        <section class="step" data-step="chat" hidden>
+          <h1>Find your private chat with the bot</h1>
+          <p class="lead">
+            Open Telegram, search for the bot (<span id="chat-bot-username" class="mono">…</span>),
+            and send it any message — <code>/start</code> works.
+          </p>
+          <ol class="hint-list">
+            <li>Open Telegram on your phone or desktop.</li>
+            <li>Search for <span id="chat-bot-username-2" class="mono">…</span> and tap it.</li>
+            <li>Send <code>/start</code> or anything else.</li>
+            <li>Come back here and click <strong>Detect my chat</strong>.</li>
+          </ol>
+          <div class="row">
+            <button class="btn btn-primary" id="chat-detect">Detect my chat</button>
+            <button class="btn btn-ghost" id="chat-refresh">Refresh</button>
+          </div>
+          <div class="result" id="chat-result" hidden></div>
+          <label class="field" id="chat-manual-wrap" hidden>
+            <span class="field-label">Or paste a chat ID manually</span>
+            <input type="text" id="chat-manual" placeholder="e.g. 123456789" />
+          </label>
+        </section>
+
+        <!-- ============== INSTALL BRIDGE (claude-user / both) ============== -->
+        <section class="step" data-step="install" hidden>
+          <h1>Install the bridge into Claude Desktop</h1>
+          <p class="lead">
+            We'll unpack the bundle, register it under <code>mcpServers</code> in your Claude Desktop config, and pre-fill the user settings so you don't have to type anything in Claude.
+          </p>
+          <div class="banner sticky" id="install-existing" hidden></div>
+          <div class="cards">
+            <div class="card">
+              <h3>Where we write</h3>
+              <p class="mono" id="install-config-path">…</p>
+            </div>
+            <div class="card">
+              <h3>Where we unpack</h3>
+              <p class="mono">~/.company-claw-bridge/bundle</p>
+            </div>
+            <div class="card">
+              <h3>Reversible</h3>
+              <p>We back up your existing config first. Uninstall = delete the <code>company-claw-bridge</code> key.</p>
+            </div>
+          </div>
+          <fieldset class="field-group">
+            <legend>Optional settings</legend>
+            <label class="field">
+              <span class="field-label">Audit chat ID (dev mirror) — optional</span>
+              <input type="text" id="install-audit" placeholder="-1001234567890" />
+            </label>
+            <label class="check-inline">
+              <input type="checkbox" id="install-devmirror" />
+              <span>Enable dev mirror (tee every message to the audit chat)</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Default reply timeout (ms)</span>
+              <input type="number" id="install-timeout" value="180000" min="5000" max="3600000" />
+            </label>
+            <label class="field">
+              <span class="field-label">Escalation marker</span>
+              <input type="text" id="install-marker" value="[ASK-CLAUDE]" />
+            </label>
+          </fieldset>
+          <div class="row">
+            <button class="btn btn-primary" id="install-go">Install bridge</button>
+            <button class="btn btn-secondary" id="install-update" hidden>Update bundle (keep my settings)</button>
+          </div>
+          <div class="result" id="install-result" hidden></div>
+        </section>
+
+        <!-- ============== SMOKE TEST (claude-user / both) ============== -->
+        <section class="step" data-step="smoke" hidden>
+          <h1>Smoke test</h1>
+          <p class="lead">
+            We'll send <code>/ping</code> through the chat and wait up to 45s for the matching <code>pong</code> back from OpenClaw. No LLM tokens are spent — this is a plumbing check, not a model check.
+          </p>
+          <div class="row">
+            <button class="btn btn-primary" id="smoke-run">Send probe</button>
+            <button class="btn btn-ghost" id="smoke-skip">Skip</button>
+          </div>
+          <div class="result" id="smoke-result" hidden></div>
+          <details class="explain">
+            <summary>What this actually does</summary>
+            <p>We send a single message tagged <code>[req:setup-XXXX] /ping</code> to your Telegram chat, then long-poll <code>getUpdates</code> for up to 45 seconds looking for any reply from a non-self sender. OpenClaw's built-in <code>/ping</code> command replies <code>pong</code> without involving the LLM, so this works even on a brand-new install with no provider key configured yet.</p>
+            <p>If you don't see <code>pong</code> back: the most common causes are (1) the Gateway daemon isn't running on the Claw host, (2) your Telegram user id isn't in <code>allowFrom</code>, or (3) you're on <code>dmPolicy: "pairing"</code> and haven't been approved yet. Re-run the Claw-host side of this installer to fix any of those.</p>
+          </details>
+        </section>
+
+        <!-- ============== DONE: CLAW-HOST ============== -->
+        <section class="step" data-step="done-claw" hidden>
+          <h1>Claw host is ready</h1>
+          <p class="lead">The OpenClaw Gateway on this machine is now bound to the company bot. Tell your employees they can run this installer in <strong>Claude side</strong> mode on their own laptops.</p>
+          <div class="cards">
+            <div class="card">
+              <h3>What employees need from you</h3>
+              <p>The shared bot token (the one you pasted on the token screen).</p>
+            </div>
+            <div class="card">
+              <h3>Sanity check</h3>
+              <p>From any employee's Telegram, DM the bot. Claw should respond within a few seconds.</p>
+            </div>
+            <div class="card">
+              <h3>Logs</h3>
+              <p>If something's off, check <code>openclaw logs</code> on this machine.</p>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn btn-ghost" id="done-claw-reveal">Show <code>openclaw.json</code> in file browser</button>
+            <button class="btn btn-primary" id="done-claw-quit">Close installer</button>
+          </div>
+        </section>
+
+        <!-- ============== DONE: CLAUDE-USER ============== -->
+        <section class="step" data-step="done-claude" hidden>
+          <h1>You're set up</h1>
+          <p class="lead">Restart Claude Desktop so it picks up the new MCP server, then start a fresh conversation and ask:</p>
+          <pre class="terminal">Use the claw_health tool and show me what came back.</pre>
+          <p>You should get a JSON response within a few seconds with <code>"healthy": true</code>.</p>
+          <div class="cards">
+            <div class="card">
+              <h3>Try a dispatch</h3>
+              <p>Ask Claude: "Use claw_dispatch to ask Claw what's on its plate."</p>
+            </div>
+            <div class="card">
+              <h3>Watch for escalations</h3>
+              <p>If Claw replies starting with <code>[ASK-CLAUDE]</code>, the bridge will surface it for Claude to answer with <code>claw_answer_escalation</code>.</p>
+            </div>
+            <div class="card">
+              <h3>Reconfigure</h3>
+              <p>Re-run this installer or edit <code>claude_desktop_config.json</code> directly under <code>mcpServers.company-claw-bridge.env</code>.</p>
+            </div>
+          </div>
+
+          <div class="cards">
+            <div class="card">
+              <h3>Also use this from Claude Code?</h3>
+              <p>The same bundle ships a <code>.claude-plugin/plugin.json</code> for Claude Code. One click registers it at user scope so <code>claude</code> picks it up alongside Claude Desktop.</p>
+              <div class="row">
+                <button class="btn btn-secondary" id="claude-code-install">Install for Claude Code</button>
+                <button class="btn btn-ghost" id="claude-code-uninstall">Uninstall</button>
+              </div>
+              <div class="result" id="claude-code-result" hidden></div>
+            </div>
+            <div class="card" id="macos-quarantine-card" hidden>
+              <h3>macOS quarantine</h3>
+              <p>If macOS refused to launch this installer (or the bundle's Node entry) with "developer cannot be verified", run this once in Terminal:</p>
+              <pre class="terminal">xattr -dr com.apple.quarantine ~/.company-claw-bridge</pre>
+              <p>Or right-click the .dmg/installer in Finder → Open the first time so Gatekeeper accepts it.</p>
+            </div>
+            <div class="card">
+              <h3>Telemetry (off by default)</h3>
+              <p>The bridge does not phone home. If you ever want to opt in to anonymized crash counts, toggle below — your decision is stored in <code>~/.company-claw-bridge/telemetry.json</code>.</p>
+              <label class="check-inline">
+                <input type="checkbox" id="telemetry-toggle" />
+                <span>Enable anonymized error reports</span>
+              </label>
+              <span class="field-help" id="telemetry-status"></span>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn btn-ghost" id="done-claude-reveal">Show config in file browser</button>
+            <button class="btn btn-primary" id="done-claude-quit">Close installer</button>
+          </div>
+        </section>
+
+        <!-- ============== NAV ============== -->
+        <div class="nav-bar">
+          <button class="btn btn-ghost" id="nav-back" hidden>← Back</button>
+          <div class="nav-spacer"></div>
+          <button class="btn btn-primary" id="nav-next">Continue →</button>
+        </div>
+      </main>
+    </div>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

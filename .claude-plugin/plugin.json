@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "company-claw-bridge",
+  "displayName": "Company Claw Bridge",
+  "version": "0.1.0",
+  "description": "Dispatch work to and supervise the company's central OpenClaw assistant from inside Claude Code, over Telegram.",
+  "author": {
+    "name": "OpenClaw <-> Claude Cowork"
+  },
+  "license": "MIT",
+  "keywords": [
+    "openclaw",
+    "claude",
+    "telegram",
+    "mcp",
+    "bridge",
+    "agent",
+    "supervisor"
+  ],
+
+  "userConfig": {
+    "telegram_bot_token": {
+      "type": "string",
+      "title": "Telegram bot token",
+      "description": "Shared company bot token (from @BotFather). The bridge uses this to send messages to and receive messages from the company's OpenClaw assistant.",
+      "sensitive": true,
+      "required": true
+    },
+    "claw_chat_id": {
+      "type": "string",
+      "title": "Claw chat ID",
+      "description": "Telegram chat ID for your private chat with the company Claw bot. /start the bot, then visit https://api.telegram.org/bot<TOKEN>/getUpdates and copy chat.id.",
+      "required": true
+    },
+    "audit_chat_id": {
+      "type": "string",
+      "title": "Audit chat ID (dev mirror)",
+      "description": "Optional. Telegram chat ID of a channel/group to mirror every message to when dev_mirror is on.",
+      "required": false
+    },
+    "dev_mirror": {
+      "type": "boolean",
+      "title": "Dev mirror enabled",
+      "description": "Copy every outbound and inbound message to the audit chat. Turn off in production.",
+      "default": false,
+      "required": false
+    },
+    "default_timeout_ms": {
+      "type": "number",
+      "title": "Default reply timeout (ms)",
+      "description": "How long to wait for Claw to reply before giving up.",
+      "default": 180000,
+      "min": 5000,
+      "max": 3600000,
+      "required": false
+    },
+    "escalation_marker": {
+      "type": "string",
+      "title": "Escalation marker",
+      "description": "String Claw prefixes a reply with when it wants Claude to help.",
+      "default": "[ASK-CLAUDE]",
+      "required": false
+    },
+    "state_dir": {
+      "type": "directory",
+      "title": "State directory",
+      "description": "Directory used for the Telegram update_id watermark and pending-request log.",
+      "default": "${HOME}/.company-claw-bridge",
+      "required": false
+    }
+  },
+
+  "mcpServers": {
+    "company-claw-bridge": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/index.js"],
+      "env": {
+        "TELEGRAM_BOT_TOKEN": "${user_config.telegram_bot_token}",
+        "CLAW_CHAT_ID": "${user_config.claw_chat_id}",
+        "AUDIT_CHAT_ID": "${user_config.audit_chat_id}",
+        "DEV_MIRROR": "${user_config.dev_mirror}",
+        "DEFAULT_TIMEOUT_MS": "${user_config.default_timeout_ms}",
+        "ESCALATION_MARKER": "${user_config.escalation_marker}",
+        "STATE_DIR": "${user_config.state_dir}"
+      }
+    }
+  },
+
+  "channels": [
+    {
+      "server": "company-claw-bridge",
+      "userConfig": {
+        "telegram_bot_token": {
+          "type": "string",
+          "title": "Telegram bot token",
+          "description": "Same shared bot token used for the MCP server.",
+          "sensitive": true,
+          "required": true
+        },
+        "claw_chat_id": {
+          "type": "string",
+          "title": "Claw chat ID",
+          "description": "Telegram chat the bridge will message Claw through.",
+          "required": true
+        }
+      }
+    }
+  ]
+}
