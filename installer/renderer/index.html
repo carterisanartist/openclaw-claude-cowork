@@ -190,20 +190,25 @@
               <div class="provider-name">OpenAI Codex</div>
               <div class="provider-sub">ChatGPT subscription (OAuth)</div>
             </button>
-            <button class="provider" data-provider="google-api-key">
+            <button class="provider" data-provider="gemini-api-key">
               <div class="provider-mark">G</div>
               <div class="provider-name">Google</div>
-              <div class="provider-sub">Gemini 2.x (AI Studio key)</div>
+              <div class="provider-sub">Gemini 3.x (AI Studio key)</div>
             </button>
             <button class="provider" data-provider="zai-api-key">
               <div class="provider-mark">Z</div>
               <div class="provider-name">Z.AI / GLM</div>
-              <div class="provider-sub">GLM-4.6, Coding Plan</div>
+              <div class="provider-sub">GLM-5.1, Coding Plan</div>
             </button>
-            <button class="provider" data-provider="moonshot">
+            <button class="provider" data-provider="moonshot-intl">
               <div class="provider-mark">M</div>
-              <div class="provider-name">Moonshot</div>
-              <div class="provider-sub">Kimi K2 (API key)</div>
+              <div class="provider-name">Moonshot (intl)</div>
+              <div class="provider-sub">Kimi K2 — api.moonshot.ai</div>
+            </button>
+            <button class="provider" data-provider="moonshot-cn">
+              <div class="provider-mark">中</div>
+              <div class="provider-name">Moonshot (CN)</div>
+              <div class="provider-sub">Kimi K2 — api.moonshot.cn</div>
             </button>
             <button class="provider" data-provider="ollama">
               <div class="provider-mark">L</div>
@@ -469,7 +474,7 @@ openclaw pairing approve telegram &lt;code&gt;</pre>
         <section class="step" data-step="smoke" hidden>
           <h1>Smoke test</h1>
           <p class="lead">
-            We'll send <code>/ping</code> through the chat and wait up to 45s for the matching <code>pong</code> back from OpenClaw. No LLM tokens are spent — this is a plumbing check, not a model check.
+            We'll send <code>/whoami</code> through the chat and wait up to 45s for a reply from OpenClaw. <code>/whoami</code> is a built-in inline shortcut that bypasses the model, so no LLM tokens are spent — this is a plumbing check, not a model check.
           </p>
           <div class="row">
             <button class="btn btn-primary" id="smoke-run">Send probe</button>
@@ -478,8 +483,8 @@ openclaw pairing approve telegram &lt;code&gt;</pre>
           <div class="result" id="smoke-result" hidden></div>
           <details class="explain">
             <summary>What this actually does</summary>
-            <p>We send a single message tagged <code>[req:setup-XXXX] /ping</code> to your Telegram chat, then long-poll <code>getUpdates</code> for up to 45 seconds looking for any reply from a non-self sender. OpenClaw's built-in <code>/ping</code> command replies <code>pong</code> without involving the LLM, so this works even on a brand-new install with no provider key configured yet.</p>
-            <p>If you don't see <code>pong</code> back: the most common causes are (1) the Gateway daemon isn't running on the Claw host, (2) your Telegram user id isn't in <code>allowFrom</code>, or (3) you're on <code>dmPolicy: "pairing"</code> and haven't been approved yet. Re-run the Claw-host side of this installer to fix any of those.</p>
+            <p>We send a single message tagged <code>[req:setup-XXXX] /whoami</code> to your Telegram chat, then long-poll <code>getUpdates</code> for up to 45 seconds looking for any reply from a non-self sender. OpenClaw's built-in <code>/whoami</code> shortcut (alias <code>/id</code>) replies with your numeric Telegram id without going through the LLM, so this works even on a brand-new install with no provider key configured yet.</p>
+            <p>If you don't see a reply: the most common causes are (1) the Gateway daemon isn't running on the Claw host, (2) your Telegram user id isn't in <code>allowFrom</code>, or (3) you're on <code>dmPolicy: "pairing"</code> and haven't been approved yet. Re-run the Claw-host side of this installer to fix any of those.</p>
           </details>
         </section>
 

@@ -45,17 +45,26 @@ async function probeOne(
         ok: true,
         models: [],
       };
-    case "google-api-key":
+    case "gemini-api-key":
       return probeGoogle(input, timeoutMs);
     case "ollama":
       return probeOllama(input, timeoutMs);
-    case "moonshot":
-      // Moonshot exposes an OpenAI-compatible /v1/models on api.moonshot.cn
-      // or api.moonshot.ai depending on region. Default to the global host.
+    case "moonshot-intl":
+      // International endpoint: api.moonshot.ai. Override-able via baseUrl.
       return probeOpenAI(
         input,
         timeoutMs,
         input.baseUrl && input.baseUrl.length > 0 ? input.baseUrl : "https://api.moonshot.ai",
+      );
+    case "moonshot-cn":
+      // China endpoint: api.moonshot.cn. Keys issued on platform.moonshot.cn
+      // are not fully cross-routable to the international host - users
+      // hitting "Test connection" with a CN key against the intl URL will
+      // get a 401 / 403, hence the separate provider.
+      return probeOpenAI(
+        input,
+        timeoutMs,
+        input.baseUrl && input.baseUrl.length > 0 ? input.baseUrl : "https://api.moonshot.cn",
       );
     case "zai-api-key":
       // Z.AI / GLM exposes OpenAI-compatible /v1/models at https://api.z.ai.

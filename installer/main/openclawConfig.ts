@@ -23,6 +23,13 @@ import { copyFile, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { platform } from "node:os";
 import { dirname } from "node:path";
 
+// OpenClaw's config (~/.openclaw/openclaw.json) is documented as JSON5, not
+// strict JSON. Users (and the OpenClaw CLI itself) are free to write trailing
+// commas, comments, unquoted keys, etc. We parse leniently so we don't barf
+// on a perfectly valid user-edited config. We always *write* strict JSON,
+// which is a valid subset of JSON5 - so we're additive, not destructive.
+import JSON5 from "json5";
+
 import type { ClawProviderId, InitOpenclawInput } from "../shared/ipc";
 import { fileExists } from "./detect";
 
@@ -75,12 +82,14 @@ export async function readOpenClawConfig(configPath: string): Promise<OpenClawCo
   const raw = await readFile(configPath, "utf8");
   if (raw.trim().length === 0) return {};
   try {
-    const parsed = JSON.parse(raw) as OpenClawConfig;
+    const parsed = JSON5.parse(raw) as OpenClawConfig;
     if (typeof parsed !== "object" || parsed === null) return {};
     return parsed;
-  } catch {
+  } catch (err) {
     throw new Error(
-      `Existing OpenClaw config at ${configPath} is not valid JSON. Please fix or remove it before continuing.`,
+      `Existing OpenClaw config at ${configPath} could not be parsed as JSON5: ${
+        err instanceof Error ? err.message : String(err)
+      }. Please fix or remove it before continuing.`,
     );
   }
 }
@@ -320,15 +329,22 @@ export async function runOpenClawCli(
  * inject (so secrets never appear on the command line where they'd hit
  * Windows command-line logging, parent process listings, or shell history).
  *
- * Mapping rules:
- *   - "anthropic-api-key"  -> --auth-choice anthropic-api-key ; key via ANTHROPIC_API_KEY
- *   - "openai-api-key"     -> --auth-choice openai-api-key    ; key via OPENAI_API_KEY
- *   - "openai-codex-oauth" -> --auth-choice openai-codex-oauth (interactive browser; we can't fully
+ * Mapping rules (verified against docs.openclaw.ai/cli/onboard +
+ * docs.openclaw.ai/providers/<provider>):
+ *   - "anthropic-api-key"  -> --auth-choice anthropic-api-key   ; key via ANTHROPIC_API_KEY
+ *   - "openai-api-key"     -> --auth-choice openai-api-key      ; key via OPENAI_API_KEY
+ *   - "openai-codex-oauth" -> --auth-choice openai-codex-oauth  (interactive browser; we can't fully
  *                             automate it but onboarding will print a URL we surface)
- *   - "google-api-key"     -> --auth-choice google-api-key    ; key via GEMINI_API_KEY
+ *   - "gemini-api-key"     -> --auth-choice gemini-api-key      ; key via GEMINI_API_KEY
+ *                             (NOT "google-api-key" - the upstream auth-choice is `gemini-api-key`)
  *   - "ollama"             -> --auth-choice ollama --custom-base-url <baseUrl> --custom-model-id <model>
- *   - "moonshot"           -> --auth-choice moonshot-api-key  ; key via MOONSHOT_API_KEY
- *   - "zai-api-key"        -> --auth-choice zai-api-key       ; --zai-api-key flag
+ *   - "moonshot-intl"      -> --auth-choice moonshot-api-key    ; key via MOONSHOT_API_KEY
+ *                             (api.moonshot.ai - international endpoint)
+ *   - "moonshot-cn"        -> --auth-choice moonshot-api-key-cn ; key via MOONSHOT_API_KEY
+ *                             (api.moonshot.cn - China endpoint; users with platform.moonshot.cn
+ *                             keys must pick this or onboarding will route to the wrong endpoint)
+ *   - "zai-api-key"        -> --auth-choice zai-api-key         ; key via ZAI_API_KEY env
+ *                             (NOT --zai-api-key flag - keeps the secret off process argv)
  *   - "custom-api-key"     -> --auth-choice custom-api-key --custom-base-url ... --custom-model-id ...
  *                             --custom-api-key via CUSTOM_API_KEY env
  */
@@ -341,26 +357,15 @@ export function buildOnboardArgs(input: InitOpenclawInput): OnboardArgs {
   const args: string[] = ["onboard", "--non-interactive", "--accept-risk"];
   const env: NodeJS.ProcessEnv = {};
 
-  const setModel = (modelRef: string) => {
-    // Onboarding writes the provider's default model itself in most paths;
-    // we re-assert it via the model flag pairs OpenClaw documents per
-    // provider. The safest cross-provider path is to let onboarding pick
-    // the default and then run `openclaw models set <ref>` afterwards (the
-    // caller does this).
-    void modelRef;
-  };
-
   switch (input.provider) {
     case "anthropic-api-key": {
       args.push("--auth-choice", "anthropic-api-key");
       if (input.apiKey) env.ANTHROPIC_API_KEY = input.apiKey;
-      setModel(input.model);
       break;
     }
     case "openai-api-key": {
       args.push("--auth-choice", "openai-api-key");
       if (input.apiKey) env.OPENAI_API_KEY = input.apiKey;
-      setModel(input.model);
       break;
     }
     case "openai-codex-oauth": {
@@ -368,13 +373,11 @@ export function buildOnboardArgs(input: InitOpenclawInput): OnboardArgs {
       // device code / URL for the user. We still launch it so the user can
       // complete the pairing inside their browser, then return.
       args.push("--auth-choice", "openai-codex-oauth");
-      setModel(input.model);
       break;
     }
-    case "google-api-key": {
-      args.push("--auth-choice", "google-api-key");
+    case "gemini-api-key": {
+      args.push("--auth-choice", "gemini-api-key");
       if (input.apiKey) env.GEMINI_API_KEY = input.apiKey;
-      setModel(input.model);
       break;
     }
     case "ollama": {
@@ -385,20 +388,23 @@ export function buildOnboardArgs(input: InitOpenclawInput): OnboardArgs {
       if (localId.length > 0) args.push("--custom-model-id", localId);
       break;
     }
-    case "moonshot": {
+    case "moonshot-intl": {
       args.push("--auth-choice", "moonshot-api-key");
       if (input.apiKey) env.MOONSHOT_API_KEY = input.apiKey;
-      setModel(input.model);
+      break;
+    }
+    case "moonshot-cn": {
+      args.push("--auth-choice", "moonshot-api-key-cn");
+      if (input.apiKey) env.MOONSHOT_API_KEY = input.apiKey;
       break;
     }
     case "zai-api-key": {
       args.push("--auth-choice", "zai-api-key");
-      if (input.apiKey) {
-        // ZAI flow accepts the key via flag OR env; use the flag form
-        // OpenClaw documents.
-        args.push("--zai-api-key", input.apiKey);
-      }
-      setModel(input.model);
+      // ZAI flow accepts the key via env var (preferred) or --zai-api-key
+      // flag. Using the env var keeps the secret out of process argv where
+      // `ps`, Windows command-history, and parent-process listings would
+      // otherwise see it.
+      if (input.apiKey) env.ZAI_API_KEY = input.apiKey;
       break;
     }
     case "custom-api-key": {
@@ -453,11 +459,12 @@ export function providerIdToConfigKey(provider: ClawProviderId): string {
       return "openai";
     case "openai-codex-oauth":
       return "openai-codex";
-    case "google-api-key":
+    case "gemini-api-key":
       return "google";
     case "ollama":
       return "ollama";
-    case "moonshot":
+    case "moonshot-intl":
+    case "moonshot-cn":
       return "moonshot";
     case "zai-api-key":
       return "zai";

@@ -30,6 +30,12 @@ export interface SmokeOutcome {
   roundTripMs?: number;
   reply?: string;
   noReply?: boolean;
+  /**
+   * Soft warning surfaced when the reply succeeded but doesn't look like
+   * /whoami output (e.g. the gateway is on an older OpenClaw, or an
+   * unrelated chat message landed in the 45s window).
+   */
+  warning?: string;
   error?: string;
 }
 
@@ -40,20 +46,25 @@ export async function smokeTest(args: { token: string; chatId: string }): Promis
   } catch (err) {
     return { ok: false, error: `Token check failed: ${String(err)}` };
   }
-  // Use OpenClaw's `/ping` chat command. Three reasons:
-  //   - It's a fixed, predictable command name, so the response is "pong"
-  //     and never gets aliased to a random skill invocation. The earlier
-  //     "please reply with /status or 'pong'" version was a natural-language
-  //     instruction Claw was free to interpret - and sometimes did, e.g.
-  //     by actually running /status and posting a multi-page health report
-  //     into the user's chat.
-  //   - It bypasses any "approval required" prompts most providers attach
-  //     to model calls (no LLM tokens are spent), so the smoke test works
-  //     even on a brand new install with strict provider quotas.
-  //   - We tag it with [req:...] so anyone tailing the chat understands
-  //     this is an automated probe and not human traffic.
+  // Use OpenClaw's `/whoami` (alias `/id`) chat command. Three reasons:
+  //   - It's a fixed inline shortcut. Per docs.openclaw.ai/slash-commands,
+  //     /help, /commands, /status, /whoami, /id are "fast path: bypass
+  //     queue + model" — the gateway answers them itself without invoking
+  //     the configured LLM, so no provider tokens are billed and the
+  //     smoke test works even if the model wasn't fully wired up yet.
+  //   - The reply is deterministic: a short "you are <id> ..." string,
+  //     so we can validate the *content* of the reply (not just the fact
+  //     that some message arrived in the chat). That makes the test
+  //     resilient to a passing user message landing in the same window.
+  //   - Earlier iterations of this probe used /ping, which is NOT in the
+  //     OpenClaw slash-command registry. Sending /ping would route through
+  //     the model, burn tokens, take an LLM round-trip, and silently
+  //     succeed if any unrelated traffic happened to land. Don't repeat
+  //     that mistake.
+  //   - We still tag the message with [req:...] so anyone tailing the
+  //     chat sees this is automated probe traffic, not human.
   const probeId = `setup-${randomUUID().slice(0, 6)}`;
-  const probeText = `[req:${probeId}] /ping`;
+  const probeText = `[req:${probeId}] /whoami`;
   const sentAt = Date.now();
 
   let sentMessageId: number;
@@ -63,6 +74,24 @@ export async function smokeTest(args: { token: string; chatId: string }): Promis
   } catch (err) {
     return { ok: false, error: `Sending probe failed: ${String(err)}` };
   }
+
+  // /whoami's reply varies a bit across OpenClaw versions but in every form
+  // I've seen it contains the substring "you are" (case-insensitive) plus
+  // the sender's numeric Telegram id. Treat any non-self reply that contains
+  // either an "id" / "user" hint OR the sender's actual id as a positive
+  // match. Anything else is a "reply received but it doesn't look like
+  // /whoami output" — still surfaces as a green smoke test, but we attach
+  // a soft warning so the user knows the wire works but the gateway may
+  // be running an older OpenClaw build.
+  const looksLikeWhoami = (text: string): boolean => {
+    const haystack = text.toLowerCase();
+    return (
+      haystack.includes("you are")
+      || haystack.includes("user_id")
+      || haystack.includes("telegram_id")
+      || /\bid[:=]\s*\d+/i.test(text)
+    );
+  };
 
   const predicate = (msg: TelegramMessage): boolean => {
     if (String(msg.chat.id) !== String(args.chatId)) return false;
@@ -82,10 +111,19 @@ export async function smokeTest(args: { token: string; chatId: string }): Promis
       return { ok: false, noReply: true };
     }
     const reply = (match.text ?? match.caption ?? "").slice(0, 500);
+    const recognized = looksLikeWhoami(reply);
     return {
       ok: true,
       roundTripMs: Date.now() - sentAt,
       reply,
+      // When the reply doesn't smell like /whoami output, surface a soft
+      // warning. The smoke test still passes (something replied), but the
+      // user should know the gateway might be on an older OpenClaw build
+      // that doesn't recognize /whoami yet, or that the reply matched
+      // unrelated chat traffic that landed in the 45s window.
+      warning: recognized
+        ? undefined
+        : "Reply received but it doesn't look like a /whoami response. The wire is working, but the gateway may be running an older OpenClaw that doesn't recognize /whoami, or an unrelated message landed in the chat in the 45s window. Inspect the reply text to confirm.",
     };
   } catch (err) {
     return { ok: false, error: `Polling for reply failed: ${String(err)}` };

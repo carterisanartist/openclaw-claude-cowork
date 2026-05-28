@@ -47,6 +47,7 @@ mkdir -p "$PACK_DIR"
 cp -R dist "$PACK_DIR/"
 cp -R server "$PACK_DIR/"
 cp -R .claude-plugin "$PACK_DIR/"
+[[ -d assets ]] && cp -R assets "$PACK_DIR/"
 cp manifest.json "$PACK_DIR/"
 cp package.json "$PACK_DIR/"
 cp package-lock.json "$PACK_DIR/" 2>/dev/null || true

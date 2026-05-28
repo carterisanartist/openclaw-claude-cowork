@@ -8,6 +8,8 @@ import { access, readFile, stat } from "node:fs/promises";
 import { homedir, platform } from "node:os";
 import { join } from "node:path";
 
+import JSON5 from "json5";
+
 import type { OpenClawDetect } from "../shared/ipc";
 
 export interface ClaudeDesktopLocation {
@@ -236,7 +238,12 @@ async function safeReadJson(p: string): Promise<unknown> {
   try {
     const raw = await readFile(p, "utf8");
     if (raw.trim().length === 0) return null;
-    return JSON.parse(raw);
+    // Use JSON5 because OpenClaw's config is documented as JSON5 (trailing
+    // commas, comments, unquoted keys allowed). Strict JSON.parse would
+    // throw on a perfectly valid user-edited config and our caller would
+    // return `null` like the file didn't exist - hiding real config from
+    // the prereq screen.
+    return JSON5.parse(raw);
   } catch {
     return null;
   }

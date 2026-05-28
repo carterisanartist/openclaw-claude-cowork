@@ -552,9 +552,8 @@ const MODEL_CATALOG = {
   "anthropic-api-key": {
     models: [
       { id: "anthropic/claude-sonnet-4-6", label: "Claude Sonnet 4.6 (recommended)" },
-      { id: "anthropic/claude-opus-4-6", label: "Claude Opus 4.6 (deepest)" },
-      { id: "anthropic/claude-haiku-4-6", label: "Claude Haiku 4.6 (fastest)" },
-      { id: "anthropic/claude-sonnet-4-5", label: "Claude Sonnet 4.5 (legacy)" },
+      { id: "anthropic/claude-opus-4-7", label: "Claude Opus 4.7 (deepest)" },
+      { id: "anthropic/claude-opus-4-6", label: "Claude Opus 4.6" },
     ],
     keyHint: "Get a key at console.anthropic.com → Settings → API Keys.",
     keyUrl: "https://console.anthropic.com/settings/keys",
@@ -565,8 +564,7 @@ const MODEL_CATALOG = {
     models: [
       { id: "openai/gpt-5.5", label: "GPT-5.5 (recommended)" },
       { id: "openai/gpt-5.4", label: "GPT-5.4" },
-      { id: "openai/gpt-5.5-mini", label: "GPT-5.5 mini (cheaper)" },
-      { id: "openai/o4", label: "o4 (reasoning)" },
+      { id: "openai/gpt-5.4-mini", label: "GPT-5.4 mini (cheaper)" },
     ],
     keyHint: "Get a key at platform.openai.com/api-keys.",
     keyUrl: "https://platform.openai.com/api-keys",
@@ -574,9 +572,14 @@ const MODEL_CATALOG = {
     requiresBaseUrl: false,
   },
   "openai-codex-oauth": {
+    // Per docs.openclaw.ai/providers/openai, the Codex auth flow registers
+    // the *openai/* family for use - not openai-codex/*. doctor --fix
+    // actively rewrites legacy openai-codex/* refs back to openai/*. We
+    // only offer the canonical refs here so we don't ship bait that the
+    // gateway will silently rewrite under the user.
     models: [
       { id: "openai/gpt-5.5", label: "GPT-5.5 via Codex (recommended)" },
-      { id: "openai-codex/gpt-5.5-codex", label: "Codex 5.5 (agent runtime)" },
+      { id: "openai/gpt-5.4", label: "GPT-5.4 via Codex" },
     ],
     keyHint:
       "Uses your ChatGPT subscription (no API key needed). We'll launch the OAuth flow when you click Run.",
@@ -584,10 +587,10 @@ const MODEL_CATALOG = {
     requiresKey: false,
     requiresBaseUrl: false,
   },
-  "google-api-key": {
+  "gemini-api-key": {
     models: [
-      { id: "google/gemini-3-pro", label: "Gemini 3 Pro (recommended)" },
-      { id: "google/gemini-3-flash", label: "Gemini 3 Flash (fast)" },
+      { id: "google/gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (recommended)" },
+      { id: "google/gemini-3.1-pro", label: "Gemini 3.1 Pro (alias)" },
       { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro (legacy)" },
     ],
     keyHint: "Get a key at aistudio.google.com/app/apikey.",
@@ -605,22 +608,40 @@ const MODEL_CATALOG = {
     requiresKey: true,
     requiresBaseUrl: false,
   },
-  moonshot: {
+  "moonshot-intl": {
     models: [
-      { id: "moonshot/kimi-k2.5", label: "Kimi K2.5 (recommended)" },
-      { id: "moonshot/kimi-k2", label: "Kimi K2 (legacy)" },
+      { id: "moonshot/kimi-k2.6", label: "Kimi K2.6 (recommended)" },
+      { id: "moonshot/kimi-k2.5", label: "Kimi K2.5" },
+      { id: "moonshot/kimi-k2-thinking", label: "Kimi K2 Thinking" },
+      { id: "moonshot/kimi-k2-turbo", label: "Kimi K2 Turbo (fast)" },
     ],
-    keyHint: "Get a key at platform.moonshot.cn or platform.moonshot.ai.",
+    keyHint: "International endpoint (api.moonshot.ai). Get a key at platform.moonshot.ai.",
     keyUrl: "https://platform.moonshot.ai",
     requiresKey: true,
     requiresBaseUrl: false,
   },
-  ollama: {
+  "moonshot-cn": {
     models: [
-      { id: "ollama/llama4:70b", label: "Llama 4 70B" },
-      { id: "ollama/qwen3.5:27b", label: "Qwen 3.5 27B" },
-      { id: "ollama/qwen3.5-coder:32b", label: "Qwen 3.5 Coder 32B" },
-      { id: "ollama/gemma4:26b", label: "Gemma 4 26B" },
+      { id: "moonshot/kimi-k2.6", label: "Kimi K2.6 (recommended)" },
+      { id: "moonshot/kimi-k2.5", label: "Kimi K2.5" },
+      { id: "moonshot/kimi-k2-thinking", label: "Kimi K2 Thinking" },
+      { id: "moonshot/kimi-k2-turbo", label: "Kimi K2 Turbo (fast)" },
+    ],
+    keyHint:
+      "China endpoint (api.moonshot.cn). Pick this if your key was issued on platform.moonshot.cn — keys aren't fully cross-routable between intl and CN.",
+    keyUrl: "https://platform.moonshot.cn",
+    requiresKey: true,
+    requiresBaseUrl: false,
+  },
+  ollama: {
+    // Ollama tags depend on what the user has pulled locally. We only suggest
+    // tags that exist on ollama.com today; the picker is editable so users
+    // can type whatever model they actually pulled.
+    models: [
+      { id: "ollama/llama3.3:70b", label: "Llama 3.3 70B" },
+      { id: "ollama/qwen2.5-coder:32b", label: "Qwen 2.5 Coder 32B" },
+      { id: "ollama/gemma3:27b", label: "Gemma 3 27B" },
+      { id: "ollama/deepseek-r1:32b", label: "DeepSeek-R1 32B (reasoning)" },
     ],
     keyHint: "Ollama serves locally at http://127.0.0.1:11434 by default — no key required.",
     keyUrl: "https://ollama.com/download",
@@ -699,9 +720,12 @@ function configProviderToCardId(configKey) {
     case "anthropic": return "anthropic-api-key";
     case "openai":    return "openai-api-key";
     case "openai-codex": return "openai-codex-oauth";
-    case "google":    return "google-api-key";
+    case "google":    return "gemini-api-key";
     case "ollama":    return "ollama";
-    case "moonshot":  return "moonshot";
+    // We can't tell intl vs CN from the on-disk config alone (both write
+    // to models.providers.moonshot). Default to intl - the user can flip
+    // to CN in the picker if their key was issued on platform.moonshot.cn.
+    case "moonshot":  return "moonshot-intl";
     case "zai":
     case "z.ai":      return "zai-api-key";
     case "custom":    return "custom-api-key";
@@ -791,8 +815,10 @@ function selectProvider(providerId, restoring = false) {
   const needsKey = cfg.requiresKey !== false;
   initclaw.keyWrap.hidden = !needsKey;
   initclaw.keyLabel.textContent =
-    providerId === "google-api-key" ? "Google AI Studio API key"
+    providerId === "gemini-api-key" ? "Google AI Studio API key (GEMINI_API_KEY)"
     : providerId === "openai-codex-oauth" ? "(no key - launches OAuth)"
+    : providerId === "moonshot-intl" ? "Moonshot API key (international)"
+    : providerId === "moonshot-cn" ? "Moonshot API key (China endpoint)"
     : "API key";
 
   initclaw.baseUrlWrap.hidden = !cfg.requiresBaseUrl;
@@ -1468,10 +1494,13 @@ smokeRun.addEventListener("click", async () => {
   const res = await window.api.smokeTest({ token: state.token, chatId: state.chatId });
   smokeRun.disabled = false;
   if (res.ok) {
+    const warningHtml = res.warning
+      ? `<div class="warn-inline" style="margin-top:10px;padding:8px 10px;border:1px solid rgba(245,184,109,0.35);background:rgba(245,184,109,0.08);border-radius:6px;font-size:12.5px;line-height:1.45;color:var(--warn);">⚠️ ${escapeHtml(res.warning)}</div>`
+      : "";
     setSmokeResult(
       "ok",
       `<h4>Round-trip succeeded in ${res.roundTripMs} ms</h4>
-       <div class="mono">${escapeHtml(res.reply ?? "")}</div>`,
+       <div class="mono">${escapeHtml(res.reply ?? "")}</div>${warningHtml}`,
     );
     return;
   }

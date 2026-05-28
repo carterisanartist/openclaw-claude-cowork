@@ -183,6 +183,12 @@ export interface SmokeTestResult {
   reply?: string;
   /** True if no inbound message at all was observed during the test window. */
   noReply?: boolean;
+  /**
+   * Soft warning surfaced when the reply succeeded but doesn't look like
+   * /whoami output. Smoke test still passes; user should sanity-check the
+   * reply text.
+   */
+  warning?: string;
   error?: string;
 }
 
@@ -219,14 +225,21 @@ export type InstallerRole = "claw-host" | "claude-user" | "both";
  * We rely on the OpenClaw CLI to actually write provider config so this map
  * stays in sync with what OpenClaw itself supports - we don't try to hand-roll
  * provider config files anymore.
+ *
+ * NOTE: ids match the upstream `--auth-choice` value 1:1 where possible. The
+ * Google id is `gemini-api-key` (not `google-api-key`) because that's what
+ * `openclaw onboard` actually accepts. Moonshot is split into `moonshot-intl`
+ * and `moonshot-cn` because they're separate auth choices upstream
+ * (`moonshot-api-key` vs `moonshot-api-key-cn`).
  */
 export type ClawProviderId =
   | "anthropic-api-key"
   | "openai-api-key"
   | "openai-codex-oauth"
-  | "google-api-key"
+  | "gemini-api-key"
   | "ollama"
-  | "moonshot"
+  | "moonshot-intl"
+  | "moonshot-cn"
   | "zai-api-key"
   | "custom-api-key";
 

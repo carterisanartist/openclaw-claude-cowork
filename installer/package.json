@@ -16,7 +16,9 @@
     "test": "npm run build:main && node --test --test-reporter=spec tests/openclawConfig.test.cjs tests/parsePairingPlain.test.cjs tests/existingBridge.test.cjs",
     "clean": "rm -rf dist out"
   },
-  "dependencies": {},
+  "dependencies": {
+    "json5": "^2.2.3"
+  },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "electron": "^42.3.0",
@@ -45,19 +47,35 @@
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "icon": "build-resources/icon.png"
     },
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "build-resources/icon.png"
     },
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64"] }
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "category": "Development",
       "icon": "build-resources/icon.png"
@@ -69,7 +87,10 @@
     },
     "dmg": {
       "title": "Lunace Tether Setup ${version}",
-      "window": { "width": 540, "height": 380 }
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     }
   }
 }
