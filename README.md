@@ -1,12 +1,10 @@
-# Company Claw Bridge
+# Lunace Tether
 
-A bridge that turns the company's central [OpenClaw](https://openclaw.ai) assistant into a coworker
-Claude can talk to. Claude **dispatches tasks** to Claw, **supervises** it, and **answers
-escalations** Claw raises with `[ASK-CLAUDE]`. Transport is a shared company Telegram bot, so the
-same Claw can be reached from any employee's machine without exposing the Gateway to the public
-internet.
+> Mission control between Claude and your company's central OpenClaw assistant. Built by [Lunace Labs](https://lunacelabs.ai).
 
-The bridge ships in two forms that share the same source tree:
+Lunace Tether is the line between [Claude](https://claude.com) (Desktop or Code) and your company's central [OpenClaw](https://openclaw.ai) assistant. Claude **dispatches tasks** to Claw, **supervises** it, and **answers escalations** Claw raises with `[ASK-CLAUDE]`. Transport is a shared company Telegram bot, so the same Claw can be reached from any employee's machine without exposing the Gateway to the public internet.
+
+The tether ships in two forms that share the same source tree:
 
 - A **Claude Desktop MCPB extension** (`company-claw-bridge.mcpb`) per `manifest.json`.
 - A **Claude Code plugin** (`.claude-plugin/plugin.json`) loadable via
@@ -18,10 +16,15 @@ Tools, env vars, and runtime are identical across both surfaces; the only differ
 manifest the host application reads.
 
 ```
-[Employee] -> [Claude Desktop] -> [MCPB plugin] -> [Telegram Bot API] -> [Company Claw on Telegram]
-                                                                            |
-                                            <- replies + [ASK-CLAUDE]s back -+
+[Employee] -> [Claude Desktop] -> [Lunace Tether] -> [Telegram Bot API] -> [Company Claw on Telegram]
+                                                                              |
+                                              <- replies + [ASK-CLAUDE]s back -+
 ```
+
+> The MCP server identity stays `company-claw-bridge` on disk (in `mcpServers.company-claw-bridge`,
+> `~/.company-claw-bridge/`, and the package name) so the tether is upgrade-safe for anyone who
+> already had it installed under the old name. The product itself is **Lunace Tether** in every
+> user-facing surface.
 
 ---
 
@@ -52,7 +55,7 @@ it asks you which role this machine plays:
 | Role                            | Run on…                                          | What it does                                                                                                                                          |
 | ------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Claw host**                   | The Mac mini / Windows box / server with OpenClaw | Binds the company Telegram bot to OpenClaw's `channels.telegram`, sets the DM allowlist, restarts the Gateway, runs `openclaw doctor`.                |
-| **Claude side**                 | Each employee's laptop / workstation              | Verifies the shared bot token, auto-discovers the user's chat with the bot, installs the bridge into Claude Desktop's config, runs a smoke test.       |
+| **Claude side**                 | Each employee's laptop / workstation              | Verifies the shared bot token, auto-discovers the user's chat with the bot, installs the tether into Claude Desktop's config, runs a smoke test.       |
 | **Both on this machine**        | Dev / demo box running everything locally        | Runs the Claw-host setup, then the Claude-side setup, without re-asking for the token.                                                                 |
 
 > ### Do the Claw host first
@@ -89,8 +92,8 @@ it asks you which role this machine plays:
 
 ### Step 2 — Admin: run the installer on the OpenClaw host (Claw host mode)
 
-1. Download `Company Claw Bridge Setup-<version>.dmg` (macOS) or
-   `Company Claw Bridge Setup Setup <version>.exe` (Windows) onto the box that runs
+1. Download `Lunace Tether Setup-<version>.dmg` (macOS) or
+   `Lunace Tether Setup Setup <version>.exe` (Windows) onto the box that runs
    OpenClaw.
 2. Launch the installer and pick **"This machine runs OpenClaw"**.
 3. Wizard:

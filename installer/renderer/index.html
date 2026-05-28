@@ -3,22 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;" />
-    <title>Company Claw Bridge Setup</title>
+    <title>Lunace Tether Setup</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="shell">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand-mark">CB</div>
+          <div class="brand-mark"><img src="img/lunace-tether-icon.png" alt="" /></div>
           <div>
-            <div class="brand-title">Company Claw Bridge</div>
+            <div class="brand-title">Lunace Tether</div>
             <div class="brand-sub" id="brand-sub">Setup</div>
           </div>
         </div>
         <ol class="steps" id="steps-list"></ol>
         <div class="sidebar-foot">
-          <p id="sidebar-foot-text">This wizard ties Claude Desktop to your company's OpenClaw assistant over Telegram.</p>
+          <img class="sidebar-wordmark" src="img/lunace-wordmark.png" alt="Lunace Labs" />
+          <p id="sidebar-foot-text">Mission control between Claude Desktop and your company's OpenClaw, over Telegram.</p>
           <button class="btn btn-ghost" id="restart-wizard" hidden>Start over</button>
         </div>
       </aside>
@@ -26,11 +27,12 @@
 
         <!-- ============== WELCOME ============== -->
         <section class="step" data-step="welcome">
-          <h1>Wire Claude and OpenClaw together</h1>
+          <h1>Tether Claude and OpenClaw together</h1>
           <p class="lead">
-            This installer connects the company's central <strong>OpenClaw</strong> assistant
-            to <strong>Claude Desktop</strong>. Once both sides are configured, Claude can dispatch work
-            to Claw and Claw can ask Claude for help when it's stuck.
+            <strong>Lunace Tether</strong> is the line between Claude Desktop and your company's
+            central <strong>OpenClaw</strong> assistant. Once both ends are clipped in, Claude can
+            dispatch work to Claw, supervise it from orbit, and answer questions Claw raises when
+            it's stuck.
           </p>
 
           <div class="diagram">
@@ -43,7 +45,7 @@
               <div class="dlabel-sm">tool calls</div>
             </div>
             <div class="dnode dnode-primary">
-              <div class="dlabel">Bridge</div>
+              <div class="dlabel">Tether</div>
               <div class="dsub">MCP plugin</div>
             </div>
             <div class="darrow">
@@ -418,7 +420,7 @@ openclaw pairing approve telegram &lt;code&gt;</pre>
 
         <!-- ============== INSTALL BRIDGE (claude-user / both) ============== -->
         <section class="step" data-step="install" hidden>
-          <h1>Install the bridge into Claude Desktop</h1>
+          <h1>Clip the tether into Claude Desktop</h1>
           <p class="lead">
             We'll unpack the bundle, register it under <code>mcpServers</code> in your Claude Desktop config, and pre-fill the user settings so you don't have to type anything in Claude.
           </p>
@@ -457,7 +459,7 @@ openclaw pairing approve telegram &lt;code&gt;</pre>
             </label>
           </fieldset>
           <div class="row">
-            <button class="btn btn-primary" id="install-go">Install bridge</button>
+            <button class="btn btn-primary" id="install-go">Install Tether</button>
             <button class="btn btn-secondary" id="install-update" hidden>Update bundle (keep my settings)</button>
           </div>
           <div class="result" id="install-result" hidden></div>
@@ -483,8 +485,8 @@ openclaw pairing approve telegram &lt;code&gt;</pre>
 
         <!-- ============== DONE: CLAW-HOST ============== -->
         <section class="step" data-step="done-claw" hidden>
-          <h1>Claw host is ready</h1>
-          <p class="lead">The OpenClaw Gateway on this machine is now bound to the company bot. Tell your employees they can run this installer in <strong>Claude side</strong> mode on their own laptops.</p>
+          <h1>Mission control is online</h1>
+          <p class="lead">The OpenClaw Gateway on this machine is now tethered to the company bot. Tell your employees they can run this installer in <strong>Claude side</strong> mode on their own laptops.</p>
           <div class="cards">
             <div class="card">
               <h3>What employees need from you</h3>
@@ -507,7 +509,7 @@ openclaw pairing approve telegram &lt;code&gt;</pre>
 
         <!-- ============== DONE: CLAUDE-USER ============== -->
         <section class="step" data-step="done-claude" hidden>
-          <h1>You're set up</h1>
+          <h1>You've reached orbit</h1>
           <p class="lead">Restart Claude Desktop so it picks up the new MCP server, then start a fresh conversation and ask:</p>
           <pre class="terminal">Use the claw_health tool and show me what came back.</pre>
           <p>You should get a JSON response within a few seconds with <code>"healthy": true</code>.</p>

@@ -1,12 +1,13 @@
-# Company Claw Bridge Setup (installer)
+# Lunace Tether Setup (installer)
 
-An Electron app that walks users through wiring the [Company Claw Bridge](../README.md)
-extension into Claude Desktop and binding it to the company's central OpenClaw assistant.
+An Electron app from [Lunace Labs](https://lunacelabs.ai) that walks users through tethering
+[Lunace Tether](../README.md) into Claude Desktop and binding it to your company's central
+OpenClaw assistant.
 
 It produces:
-- **macOS**: `Company Claw Bridge Setup-<version>.dmg` (x64 + arm64)
-- **Windows**: `Company Claw Bridge Setup Setup <version>.exe` (NSIS, x64)
-- **Linux**: `Company Claw Bridge Setup-<version>.AppImage` (x64)
+- **macOS**: `Lunace Tether Setup-<version>.dmg` (x64 + arm64)
+- **Windows**: `Lunace Tether Setup Setup <version>.exe` (NSIS, x64)
+- **Linux**: `Lunace Tether Setup-<version>.AppImage` (x64)
 
 ## What the wizard does
 
@@ -100,7 +101,7 @@ To produce distributable installers:
 npm run dist:mac      # .dmg for both x64 and arm64
 npm run dist:win      # .exe (NSIS) for x64. Cross-builds from macOS or Linux via the
                       # bundled wine that electron-builder fetches automatically. The
-                      # resulting `Company Claw Bridge Setup Setup <ver>.exe` embeds
+                      # resulting `Lunace Tether Setup Setup <ver>.exe` embeds
                       # `company-claw-bridge.mcpb` under `resources/`.
 npm run dist          # current platform's targets
 ```
@@ -114,7 +115,7 @@ Apple Developer ID. Similarly for Windows you'll want a code-signing cert.
 
 | Item                              | macOS                                                                        | Windows                                                |
 | --------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
-| App                               | `/Applications/Company Claw Bridge Setup.app`                                | `%LOCALAPPDATA%\Programs\company-claw-bridge-setup`    |
+| App                               | `/Applications/Lunace Tether Setup.app`                                      | `%LOCALAPPDATA%\Programs\lunace-tether-setup`         |
 | Unpacked bridge bundle            | `~/.company-claw-bridge/bundle/`                                             | same                                                   |
 | Bridge state (update watermark, pending requests) | `~/.company-claw-bridge/state.json`                          | same                                                   |
 | Claude Desktop config we edit     | `~/Library/Application Support/Claude/claude_desktop_config.json`            | `%APPDATA%\Claude\claude_desktop_config.json`          |

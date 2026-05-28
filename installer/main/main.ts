@@ -11,8 +11,8 @@ async function createWindow(): Promise<void> {
     height: 720,
     minWidth: 820,
     minHeight: 620,
-    title: "Company Claw Bridge Setup",
-    backgroundColor: "#0e0f13",
+    title: "Lunace Tether Setup",
+    backgroundColor: "#000000",
     show: false,
     autoHideMenuBar: true,
     webPreferences: {

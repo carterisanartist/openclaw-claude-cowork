@@ -1,15 +1,17 @@
 {
   "manifest_version": "0.3",
   "name": "company-claw-bridge",
-  "display_name": "Company Claw Bridge",
+  "display_name": "Lunace Tether",
   "version": "0.1.0",
-  "description": "Dispatch work to and supervise the company's central OpenClaw assistant from inside Claude Desktop, over Telegram.",
-  "long_description": "A bridge that turns the company's central OpenClaw assistant into a coworker Claude Desktop can talk to. Claude dispatches tasks, polls progress, cancels runaways, inspects sessions, and answers escalations Claw raises with the [ASK-CLAUDE] marker. Transport is Telegram (a shared company bot) so the same Claw can be reached from any employee's machine without exposing the Gateway to the internet.",
+  "description": "Tether Claude Desktop to your company's central OpenClaw assistant. Dispatch tasks, supervise from orbit, answer escalations. From Lunace Labs.",
+  "long_description": "Lunace Tether is the line between Claude Desktop and your company's OpenClaw assistant. Claude dispatches tasks, polls progress, cancels runaways, inspects sessions, and answers escalations Claw raises with the [ASK-CLAUDE] marker. Transport is a shared company Telegram bot, so the same Claw can be reached from any employee's machine without exposing the Gateway to the public internet. Built by Lunace Labs.",
   "author": {
-    "name": "OpenClaw <-> Claude Cowork"
+    "name": "Lunace Labs",
+    "url": "https://lunacelabs.ai"
   },
+  "homepage": "https://github.com/carterisanartist/openclaw-claude-cowork",
   "license": "MIT",
-  "keywords": ["openclaw", "claude", "telegram", "mcp", "bridge", "agent", "supervisor"],
+  "keywords": ["openclaw", "claude", "telegram", "mcp", "bridge", "tether", "lunace", "agent", "supervisor"],
   "server": {
     "type": "node",
     "entry_point": "dist/index.js",

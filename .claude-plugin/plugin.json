@@ -1,12 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "company-claw-bridge",
-  "displayName": "Company Claw Bridge",
+  "displayName": "Lunace Tether",
   "version": "0.1.0",
-  "description": "Dispatch work to and supervise the company's central OpenClaw assistant from inside Claude Code, over Telegram.",
+  "description": "Tether Claude Code to your company's central OpenClaw assistant. Dispatch tasks, supervise from orbit, answer escalations. From Lunace Labs.",
   "author": {
-    "name": "OpenClaw <-> Claude Cowork"
+    "name": "Lunace Labs",
+    "url": "https://lunacelabs.ai"
   },
+  "homepage": "https://github.com/carterisanartist/openclaw-claude-cowork",
   "license": "MIT",
   "keywords": [
     "openclaw",
@@ -14,6 +16,8 @@
     "telegram",
     "mcp",
     "bridge",
+    "tether",
+    "lunace",
     "agent",
     "supervisor"
   ],

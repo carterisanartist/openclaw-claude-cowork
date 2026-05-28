@@ -1,10 +1,10 @@
 {
-  "name": "company-claw-bridge-setup",
+  "name": "lunace-tether-setup",
   "version": "0.1.0",
-  "description": "Guided installer that wires the Company Claw Bridge extension into Claude Desktop and binds it to the company's OpenClaw assistant.",
+  "description": "Guided installer that tethers Claude Desktop to your company's OpenClaw assistant. Mission-critical setup from Lunace Labs.",
   "private": true,
   "main": "dist/main/main.js",
-  "author": "OpenClaw <-> Claude Cowork",
+  "author": "Lunace Labs",
   "license": "MIT",
   "scripts": {
     "build:main": "tsc -p tsconfig.main.json",
@@ -24,8 +24,8 @@
     "typescript": "^5.6.0"
   },
   "build": {
-    "appId": "ai.openclaw.claude-cowork-setup",
-    "productName": "Company Claw Bridge Setup",
+    "appId": "ai.lunacelabs.tether-setup",
+    "productName": "Lunace Tether Setup",
     "directories": {
       "buildResources": "build-resources",
       "output": "out"
@@ -68,7 +68,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "dmg": {
-      "title": "Company Claw Bridge Setup ${version}",
+      "title": "Lunace Tether Setup ${version}",
       "window": { "width": 540, "height": 380 }
     }
   }
