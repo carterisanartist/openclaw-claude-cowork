@@ -2,7 +2,7 @@
   "name": "company-claw-bridge",
   "version": "0.1.0",
   "description": "Lunace Tether — Claude Desktop / Claude Code MCP plugin that lets Claude dispatch and supervise your company's central OpenClaw assistant over Telegram. From Lunace Labs.",
-  "homepage": "https://github.com/carterisanartist/openclaw-claude-cowork",
+  "homepage": "https://github.com/LunaceLabs/openclaw-claude-cowork",
   "author": "Lunace Labs (https://lunacelabs.ai)",
   "license": "MIT",
   "private": true,
